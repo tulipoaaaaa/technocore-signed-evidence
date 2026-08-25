@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "technocore-signed-evidence"
+version = "0.1.0"
+description = "Offline verification for signed Technocore message evidence"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["cryptography>=50,<51"]
+
+[project.optional-dependencies]
+dev = [
+  "bandit==1.8.6",
+  "build==1.3.0",
+  "detect-secrets==1.5.0",
+  "hatchling==1.27.0",
+  "mypy==1.17.1",
+  "pip-audit==2.9.0",
+  "pytest==8.4.1",
+  "pytest-cov==6.2.1",
+  "ruff==0.12.10",
+  "twine==6.1.0",
+]
+
+[project.scripts]
+technocore-evidence = "technocore_evidence.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/technocore_evidence"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --cov=technocore_evidence --cov-branch --cov-fail-under=95"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = ["src/technocore_evidence/__main__.py"]
+
+[tool.coverage.report]
+exclude_also = ["if __name__ == .__main__.:"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "C4", "PIE", "RUF", "SIM", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]

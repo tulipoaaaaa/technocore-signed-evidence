@@ -1,0 +1,47 @@
+name: quality
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.13"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: python -m venv .venv
+      - name: Install in repository-local virtual environment
+        shell: pwsh
+        run: .venv/Scripts/python.exe -m pip install -e ".[dev]"
+        if: runner.os == 'Windows'
+      - name: Test on Windows
+        shell: pwsh
+        run: .venv/Scripts/python.exe -m pytest
+        if: runner.os == 'Windows'
+      - name: Install and test on Linux
+        run: |
+          .venv/bin/python -m pip install -e ".[dev]"
+          .venv/bin/python -m pytest
+        if: runner.os != 'Windows'
+      - name: Static quality
+        shell: pwsh
+        run: |
+          $python = if ($IsWindows) { '.venv/Scripts/python.exe' } else { '.venv/bin/python' }
+          & $python -m ruff check .
+          & $python -m ruff format --check .
+          & $python -m mypy src tests
